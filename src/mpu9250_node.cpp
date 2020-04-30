@@ -31,7 +31,6 @@ class ImuNode
         sensor_msgs::Imu imu_data;
         ros_mpu9250::ahrs ahrs_data;
         sensor_msgs::Temperature temp_data;
-        string device;
         string frame_id;
         bool publish_temperature = false;
         double rate;
@@ -48,18 +47,16 @@ class ImuNode
         explicit ImuNode(ros::NodeHandle nh)
             : node_handle(nh)
         {
-            node_handle.param("device", device, std::string("mpu9250"));
             node_handle.param("frame_id", frame_id, std::string("imu"));
             node_handle.param("rate", rate, 100.0);
 
-            ROS_INFO("device: %s", device.c_str());
             ROS_INFO("frame_id: %s", frame_id.c_str());
             ROS_INFO("rate: %f [Hz]", rate);
             ROS_INFO("publish_temperature: %s", (publish_temperature ? "true" : "false"));
 
             q0 = 1; q1 = 0; q2 = 0, q3 = 0; twoKi = 0; twoKp =2;
 
-            imu_data_pub = node_handle.advertise<sensor_msgs::Imu>("data_raw", 100);
+            imu_data_pub = node_handle.advertise<sensor_msgs::Imu>("imu/data_raw", 100);
             ahrs_data_pub = node_handle.advertise<ros_mpu9250::ahrs>("ahrs", 100);
             if (publish_temperature)
             {
@@ -288,14 +285,10 @@ class ImuNode
 int main(int argc, char **argv) {
 
     ros::init(argc, argv, "ros_mpu9250");
-    ros::NodeHandle nh("~");
+    ros::NodeHandle nh;
     ImuNode node(nh);
 
-    if (!node.init())
-    {
-        printf("Sensor not enabled\n");
-        return EXIT_FAILURE;
-    }
+    if (!node.init()) return EXIT_FAILURE;
 
     node.spin();
 
